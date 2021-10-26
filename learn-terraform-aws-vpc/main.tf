@@ -64,20 +64,57 @@ resource "aws_internet_gateway" "igw" {
 }
 
 // Route Table 생성
-resource "aws_route_table" "route_table" {
+resource "aws_route_table" "route_table_pub" {
     vpc_id = aws_vpc.main.id
 
     tags = {
-        Nmae = "rt-terraform-an2"
+        Nmae = "rt-terraform-pub-an2"
+    }
+}
+
+resource "aws_route_table" "route_table_pri" {
+    vpc_id = aws_vpc.main.id
+
+    tags = {
+        Name = "rt-terraform-pri-an2"
     }
 }
 
 resource "aws_route_table_association" "route_table_association_1" {
     subnet_id = aws_subnet.first_subnet.id
-    route_table_id = aws_route_table.route_table.id
+    route_table_id = aws_route_table.route_table_pub.id
 }
 
 resource "aws_route_table_association" "route_table_assciation_2" {
     subnet_id = aws_subnet.second_subnet.id
-    route_table_id = aws_route_table.route_table.id
+    route_table_id = aws_route_table.route_table_pub.id
+}
+
+// EIP 생성
+resource "aws_eip" "eip_nat" {
+    vpc = true
+
+    lifecycle {
+        create_before_destroy = true
+    }
+}
+
+resource "aws_nat_gateway" "nat_gateway" {
+    allocation_id = aws_eip.eip_nat.id
+    subnet_id = aws_subnet.first_subnet.id
+
+    tags = {
+        Name = "nat-terraform-an2"
+    }
+}
+
+resource "aws_route_table_association" "route_table_association_pri_1" {
+    subnet_id = aws_subnet.first_pri_subnet.id
+    route_table_id = aws_route_table.route_table_pri.id
+}
+
+resource "aws_route" "private_nat" {
+    route_table_id = aws_route_table.route_table_pri.id
+    destination_cidr_block = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat_gateway.id
 }
