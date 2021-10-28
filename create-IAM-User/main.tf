@@ -69,3 +69,26 @@ resource "aws_iam_instance_profile" "iam-profile" {
     name = "iam-profile"
     role = aws_iam_role.role-ec2.name
 }
+
+# IAM user에게 policy 할당
+resource "aws_iam_user_policy" "admin" {
+  name  = "Admin"
+  user  = aws_iam_user.nari120.name
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "*"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+    ]
+}
+EOF
+}
