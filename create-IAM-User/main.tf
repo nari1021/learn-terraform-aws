@@ -22,3 +22,50 @@ resource "aws_iam_group_membership" "terraforms" {
 
     group = aws_iam_group.terraform_group.name
 }
+
+# EC2 를 위한 IAM role 기본 생성
+resource "aws_iam_role" "role-ec2" {
+    name = "iam-role-terraform-test-ec2"
+    path = "/"
+    assume_role_policy = <<EOF
+{
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "",
+                "Effect": "Allow",
+                "Principal": {
+                    "Service": "ec2.amazonaws.com"
+                },
+                "Action": "sts:AssumeRole"
+            }
+        ]
+    }
+    EOF
+}
+
+resource "aws_iam_role_policy" "policy-s3" {
+    name = "policy-terraform-test-s3"
+    role = aws_iam_role.role-ec2.id
+    policy = <<EOF
+{
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "AllowAppArtifactsReadAccess",
+                "Effect": "Allow",
+                "Action": [
+                    "s3: GetObject"
+                ],
+                "Resource": "*"
+            }
+        ]
+    }
+    EOF
+
+}
+
+resource "aws_iam_instance_profile" "iam-profile" {
+    name = "iam-profile"
+    role = aws_iam_role.role-ec2.name
+}
