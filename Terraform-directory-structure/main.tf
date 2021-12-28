@@ -1,7 +1,12 @@
-resource "aws_vpc" "aws-vpc-sheom-an1" {
-    cidr_block = "10.0.0.0/16"
-
-    tags = {
-        Name = "aws-vpc-sheom-an1"
-    }
+locals {
+  resource_prefix = join("-", [
+    var.service_name,
+    var.system
+  ])
+  resource_suffix = var.env
+  tags = merge(var.tags, {
+    Owner  = var.owner
+    Env    = var.env
+    System = var.system
+  })
 }

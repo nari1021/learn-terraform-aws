@@ -1,7 +1,11 @@
 provider "aws" {
   access_key = "<AWS_ACCESS_KEY>"
   secret_key = "<AWS_SECRET_KEY>"
-  region     = "ap-northeast-1"
+  region     = var.region
+
+  default_tags {
+    tags = local.tags
+  }
 }
 
 ##### Terraform Configuration Block #####
@@ -22,6 +26,7 @@ terraform {
   }
 }
 
+# Terraform cloud 사용하지 않는다면 아래부분 모두 주석처리
 # Using multiple workspaces:
 terraform {
   backend " remote" {
