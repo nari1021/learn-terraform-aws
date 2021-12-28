@@ -8,8 +8,9 @@ provider "aws" {
   }
 }
 
+# Terraform cloud 사용하지 않는다면 아래부분 모두 주석처리
 ##### Terraform Configuration Block #####
-# 테라폼의 공작과 관련된 여러 설정이 포함된다.
+# 테라폼의 동작과 관련된 여러 설정이 포함된다.
 # Using a single workspace:
 terraform {
   # 필수 버전 지정
@@ -26,7 +27,6 @@ terraform {
   }
 }
 
-# Terraform cloud 사용하지 않는다면 아래부분 모두 주석처리
 # Using multiple workspaces:
 terraform {
   backend " remote" {
