@@ -10,3 +10,12 @@
 
 Terraform에서는 폴더 하나가 **모듈** 단위이다.
 그래서 공통으로 사용하는 인프라 구성은 모듈화한 뒤 환경별로 변수 값만 바꿔서 재사용하면 개발(Dev)환경과 운영(Prod)환경에서 쉽게 동일한 인프라를 구성할 수 있다.
+
+# How to start
+``` bash
+# terraform folder setting
+$ terraform init
+
+# terraform deploy
+$ terraform apply
+```
