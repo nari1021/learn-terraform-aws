@@ -1,6 +1,7 @@
 provider "aws" {
-  access_key = "<AWS_ACCESS_KEY>"
-  secret_key = "<AWS_SECRET_KEY>"
+  # AWS Access Key & Secret Key 는 aws configure로 관리하는 것이 보안상 더 적절하다
+  # access_key = "<AWS_ACCESS_KEY>"
+  # secret_key = "<AWS_SECRET_KEY>"
   region     = var.region
 
   default_tags {
