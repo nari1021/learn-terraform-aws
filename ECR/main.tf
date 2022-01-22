@@ -1,16 +1,16 @@
 data "aws_caller_identity" "current" {}
 
 locals {
-  total_repository = concat(var.next3_ecr_repository_name["fo"], var.next3_ecr_repository_name["bo"])
+  total_repository = concat(var.ecr_repository_name)
   iam_resource     = [for i in local.total_repository : "arn:aws:ecr:ap-northeast-2:${data.aws_caller_identity.current.account_id}:repository/${i}/*"]
 }
 
-resource "aws_ecr_repository" "next3" {
+resource "aws_ecr_repository" "main" {
     count = length(local.total_repository)
     name  = element(local.total_repository, count.index)
 }
 
-resource "aws_ecr_lifecycle_policy" "next3" {
+resource "aws_ecr_lifecycle_policy" "main" {
   count      = length(local.total_repository)
   repository = element(local.total_repository, count.index)
 
@@ -32,11 +32,11 @@ resource "aws_ecr_lifecycle_policy" "next3" {
   })
 
   depends_on = [
-    aws_ecr_repository.next3
+    aws_ecr_repository.main
   ]
 }
 
-resource "aws_ecr_repository_policy" "next3" {
+resource "aws_ecr_repository_policy" "main" {
   count      = length(local.total_repository)
   repository = element(local.total_repository, count.index)
 
@@ -47,7 +47,7 @@ resource "aws_ecr_repository_policy" "next3" {
         Sid    = "new statement"
         Effect = "Allow"
         Principal = {
-          AWS = aws_iam_user.next3.arn
+          AWS = aws_iam_user.main.arn
         }
         Action = [
           "ecr:BatchCheckLayerAvailability",
@@ -64,11 +64,11 @@ resource "aws_ecr_repository_policy" "next3" {
   })
 
   depends_on = [
-    aws_ecr_repository.next3
+    aws_ecr_repository.main
   ]
 }
 
-resource "aws_iam_policy" "next3" {
+resource "aws_iam_policy" "main" {
   name        = "test_policy"
   description = "My test policy"
 
@@ -94,7 +94,7 @@ resource "aws_iam_policy" "next3" {
   })
 }
 
-resource "aws_iam_user" "next3" {
+resource "aws_iam_user" "main" {
   name = "test_ecr_user"
 
   tags = {
@@ -102,7 +102,7 @@ resource "aws_iam_user" "next3" {
   }
 }
 
-resource "aws_iam_user_policy_attachment" "next3" {
-  user       = aws_iam_user.next3.name
-  policy_arn = aws_iam_policy.next3.arn
+resource "aws_iam_user_policy_attachment" "main" {
+  user       = aws_iam_user.main.name
+  policy_arn = aws_iam_policy.main.arn
 }
