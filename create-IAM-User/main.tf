@@ -1,94 +1,75 @@
-provider "aws" {
-    region = "ap-northeast-2"
-}
-
 # IAM User 생성
-resource "aws_iam_user" "nari120" {
-    name = "nari120"
+resource "aws_iam_user" "main" {
+    name = "aws-test-iam-user-an2"
+    tags = {
+        Name = "aws-test-iam-user-an2"
+    }
 }
 
-# IAM Group 생성
-resource "aws_iam_group" "terraform_group" {
-    name = "terraform_test_group"
-}
-
-# IAM user -> IAM group에 등록
-resource "aws_iam_group_membership" "terraforms" {
-    name = aws_iam_group.terraform_group.name
-
-    users = [
-        aws_iam_user.nari120.name
-    ]
-
-    group = aws_iam_group.terraform_group.name
-}
-
-# EC2 를 위한 IAM role 기본 생성
-resource "aws_iam_role" "role-ec2" {
-    name = "iam-role-terraform-test-ec2"
-    path = "/"
-    assume_role_policy = <<EOF
-{
-        "Version": "2012-10-17",
-        "Statement": [
+resource "aws_iam_policy" "main" {
+    name        = "aws-test-iam-policy-an2"
+    description = "ECR Image pull and push policy"
+    
+    policy = jsonencode({
+        Version = "2012-10-17"
+        Statement = [
             {
-                "Sid": "",
-                "Effect": "Allow",
-                "Principal": {
-                    "Service": "ec2.amazonaws.com"
-                },
-                "Action": "sts:AssumeRole"
+                Sid    = "PermissionForPutImage"
+                Effect = "Allow"
+                Action = "*"
+                Resource = "*"
             }
         ]
+    })
+    
+    tags = {
+        Name    = "aws-test-iam-policy-an2"
     }
-    EOF
 }
 
-resource "aws_iam_role_policy" "policy-s3" {
-    name = "policy-terraform-test-s3"
-    role = aws_iam_role.role-ec2.id
-    policy = <<EOF
-{
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Sid": "AllowAppArtifactsReadAccess",
-                "Effect": "Allow",
-                "Action": [
-                    "s3: GetObject"
-                ],
-                "Resource": "*"
-            }
-        ]
-    }
-    EOF
-
+# 생성한 User 에 policy 연결
+resource "aws_iam_user_policy_attachment" "main" {
+  user       = aws_iam_user.main.name
+  policy_arn = aws_iam_policy.main.arn
 }
 
-resource "aws_iam_instance_profile" "iam-profile" {
-    name = "iam-profile"
-    role = aws_iam_role.role-ec2.name
-}
 
-# IAM user에게 policy 할당
-resource "aws_iam_user_policy" "admin" {
-  name  = "Admin"
-  user  = aws_iam_user.nari120.name
+# IAM Role 생성
+# SSM으로 EC2에 접속하기 위한 IAM role 생성
+resource "aws_iam_role" "ec2" {
+    name = "aws-test-iam-role-ec2-ecprd-an2"
 
-  policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "*"
-            ],
-            "Resource": [
-                "*"
-            ]
+    assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AssumeRoleForEC2Instance"
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
         }
+      }
     ]
+  })
+
+  tags = merge(var.tags, {
+    Name = "aws-test-iam-role-ec2-an2"
+  })
 }
-EOF
+
+# AmazonSSMManagedInstanceCore policy
+data "aws_iam_policy" "AmazonSSMManagedInstanceCore" {
+  name = "AmazonSSMManagedInstanceCore"
+}
+
+# 생성한 role에 policy 연결
+resource "aws_iam_role_policy_attachment" "ssm_ec2" {
+  role       = aws_iam_role.ec2.name
+  policy_arn = data.aws_iam_policy.AmazonSSMManagedInstanceCore.arn
+}
+
+# EC2 인스턴스 profile 생성
+resource "aws_iam_instance_profile" "main" {
+    role = aws_iam_role.ec2.name
 }
