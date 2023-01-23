@@ -1,5 +1,15 @@
+terraform {
+  required_version = ">= 1.1.5"
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = ">= 4.14.0"
+    }
+  }
+}
+
 provider "aws" {
-    access_key = "<AWS_ACCESS_KEY>"
-    secret_key = "<AWS_SECRET_KEY>"
-    region = "ap-northeast-2"
+  profile                  = "terraform-sandbox"
+  shared_config_files      = ["~/.aws/config"]
+  shared_credentials_files = ["~/.aws/credentials"]
 }
