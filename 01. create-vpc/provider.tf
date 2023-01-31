@@ -9,7 +9,7 @@ terraform {
 }
 
 provider "aws" {
-  profile                  = "terraform-sandbox"
+  profile                  = "terraform"
   shared_config_files      = ["~/.aws/config"]
   shared_credentials_files = ["~/.aws/credentials"]
 }
