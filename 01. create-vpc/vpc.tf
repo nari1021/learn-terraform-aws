@@ -1,116 +1,114 @@
-// VPC 생성
 resource "aws_vpc" "main" {
-    cidr_block = "10.0.0.0/16"
+  cidr_block = "100.0.0.0/16"
 
-    tags = {
-        Name = "vpc-terraform-an2"
-    }
+  tags = {
+    Name = "aws-vpc-temp-an2"
+  }
 }
 
-//Subnet 생성
 resource "aws_subnet" "first_subnet" {
-    vpc_id = aws_vpc.main.id
-    cidr_block = "10.0.1.0/24"
+  vpc_id     = aws_vpc.main.id
+  cidr_block = "100.10.0.0/24"
 
-    availability_zone = "ap-northeast-2a"
-    tags = {
-        Name = "subnet1-terraform-pub-an2"
-    }
+  availability_zone = "ap-northeast-2a"
+  tags = {
+    Name = "subnet1-terraform-pub-an2"
+  }
 }
 
 resource "aws_subnet" "second_subnet" {
-    vpc_id = aws_vpc.main.id
-    cidr_block = "10.0.2.0/24"
+  vpc_id     = aws_vpc.main.id
+  cidr_block = "100.11.0.0/24"
 
-    availability_zone = "ap-northeast-2c"
+  availability_zone = "ap-northeast-2c"
 
-    tags = {
-        Name = "subnet2-terraform-pub-an2"
-    }
+  tags = {
+    Name = "subnet2-terraform-pub-an2"
+  }
 }
 
 resource "aws_subnet" "first_pri_subnet" {
-    vpc_id = aws_vpc.main.id
-    cidr_block = "10.0.3.0/24"
+  vpc_id     = aws_vpc.main.id
+  cidr_block = "100.20.0.0/24"
 
-    availability_zone = "ap-northeast-2a"
-    tags = {
-        Name = "subnet1-terraform-pri-an2"
-    }
+  availability_zone = "ap-northeast-2a"
+  tags = {
+    Name = "subnet1-terraform-pri-an2"
+  }
 }
 
 resource "aws_subnet" "second_pri_subnet" {
-    vpc_id = aws_vpc.main.id
-    cidr_block = "10.0.4.0/24"
+  vpc_id     = aws_vpc.main.id
+  cidr_block = "100.21.0.0/24"
 
-    availability_zone = "ap-northeast-2c"
-    tags = {
-        Name = "subnet2-terraform-pub-an2"
-    }
+  availability_zone = "ap-northeast-2c"
+  tags = {
+    Name = "subnet2-terraform-pub-an2"
+  }
 }
 
 
 // Internet Gateway 생성
 resource "aws_internet_gateway" "igw" {
-    vpc_id = aws_vpc.main.id
+  vpc_id = aws_vpc.main.id
 
-    tags = {
-        Name = "ig-terraform-an2"
-    }
+  tags = {
+    Name = "ig-terraform-an2"
+  }
 }
 
 // Route Table 생성
 resource "aws_route_table" "route_table_pub" {
-    vpc_id = aws_vpc.main.id
+  vpc_id = aws_vpc.main.id
 
-    tags = {
-        Nmae = "rt-terraform-pub-an2"
-    }
+  tags = {
+    Nmae = "rt-terraform-pub-an2"
+  }
 }
 
 resource "aws_route_table" "route_table_pri" {
-    vpc_id = aws_vpc.main.id
+  vpc_id = aws_vpc.main.id
 
-    tags = {
-        Name = "rt-terraform-pri-an2"
-    }
+  tags = {
+    Name = "rt-terraform-pri-an2"
+  }
 }
 
 resource "aws_route_table_association" "route_table_association_1" {
-    subnet_id = aws_subnet.first_subnet.id
-    route_table_id = aws_route_table.route_table_pub.id
+  subnet_id      = aws_subnet.first_subnet.id
+  route_table_id = aws_route_table.route_table_pub.id
 }
 
 resource "aws_route_table_association" "route_table_assciation_2" {
-    subnet_id = aws_subnet.second_subnet.id
-    route_table_id = aws_route_table.route_table_pub.id
+  subnet_id      = aws_subnet.second_subnet.id
+  route_table_id = aws_route_table.route_table_pub.id
 }
 
 // EIP 생성
 resource "aws_eip" "eip_nat" {
-    vpc = true
+  vpc = true
 
-    lifecycle {
-        create_before_destroy = true
-    }
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_nat_gateway" "nat_gateway" {
-    allocation_id = aws_eip.eip_nat.id
-    subnet_id = aws_subnet.first_subnet.id
+  allocation_id = aws_eip.eip_nat.id
+  subnet_id     = aws_subnet.first_subnet.id
 
-    tags = {
-        Name = "nat-terraform-an2"
-    }
+  tags = {
+    Name = "nat-terraform-an2"
+  }
 }
 
 resource "aws_route_table_association" "route_table_association_pri_1" {
-    subnet_id = aws_subnet.first_pri_subnet.id
-    route_table_id = aws_route_table.route_table_pri.id
+  subnet_id      = aws_subnet.first_pri_subnet.id
+  route_table_id = aws_route_table.route_table_pri.id
 }
 
 resource "aws_route" "private_nat" {
-    route_table_id = aws_route_table.route_table_pri.id
-    destination_cidr_block = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_gateway.id
+  route_table_id         = aws_route_table.route_table_pri.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat_gateway.id
 }

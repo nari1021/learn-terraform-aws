@@ -1,9 +1,10 @@
+#### created at 25 Apr 2023 ####
 terraform {
-  required_version = ">= 1.1.5"
+  required_version = ">= 1.4.5"
   required_providers {
     aws = {
-      source = "hashicorp/aws"
-      version = ">= 4.14.0"
+      source  = "hashicorp/aws"
+      version = ">= 4.52.0"
     }
   }
 }
