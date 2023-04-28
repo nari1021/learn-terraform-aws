@@ -157,7 +157,7 @@ mainSteps:
       PropertySelector: $.DBInstances..DBInstanceStatus
       DesiredValues:
         - modifying
-      filters:
+      Filters:
         - Name: db-cluster-id
           Values:
             - "{{ DBClusterId }}"
@@ -379,6 +379,6 @@ mainSteps:
           payload['send_msg'] = result
           return payload
       InputPayload:
-        webhook: "{{ WebhookUrl }}"
+        WEBHOOK: "{{ WebhookUrl }}"
     isCritical: false
     isEnd: true
