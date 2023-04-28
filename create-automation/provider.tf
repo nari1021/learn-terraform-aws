@@ -1,4 +1,4 @@
-#### created at 25 Apr 2023 ####
+#### created at 28 Apr 2023 ####
 terraform {
   required_version = ">= 1.4.5"
   required_providers {
@@ -9,6 +9,7 @@ terraform {
   }
 }
 
+#### AWS Profile settings ####
 provider "aws" {
   profile                  = "terraform"
   shared_config_files      = ["~/.aws/config"]
