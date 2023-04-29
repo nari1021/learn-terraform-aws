@@ -1,4 +1,4 @@
-resource "aws_iam_role" "main" {
+resource "aws_iam_role" "ssm" {
   name        = "modify-rds-ssm-automation-role"
   description = "Allows to modify AWS RDS Instances Class"
 
@@ -15,14 +15,14 @@ resource "aws_iam_role" "main" {
       },
     ]
   })
-  managed_policy_arns = [aws_iam_policy.main.arn]
+  managed_policy_arns = [aws_iam_policy.ssm.arn]
 
   tags = {
     Name = "modify-rds-ssm-automation-role"
   }
 }
 
-resource "aws_iam_policy" "main" {
+resource "aws_iam_policy" "ssm" {
   name        = "modify-rds-ssm-automation-policy"
   description = "Allows to modify AWS RDS Instances Class"
 
@@ -60,5 +60,65 @@ resource "aws_iam_policy" "main" {
 
   tags = {
     Name = "modify-rds-ssm-automation-policy"
+  }
+}
+
+resource "aws_iam_role" "eventbridge" {
+  name        = "modify-rds-ssm-automation-eventbridge-role"
+  description = "Allows to run SSM Automation from EventBridge"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = "AssumeServiceRoleForEventBridge"
+        Principal = {
+          Service = "events.amazonaws.com"
+        }
+      },
+    ]
+  })
+  managed_policy_arns = [aws_iam_policy.eventbridge.arn]
+
+  tags = {
+    Name = "modify-rds-ssm-automation-eventbridge-role"
+  }
+}
+
+#### For EventBridge ####
+locals {
+  rds_modify_ssm_docs     = aws_ssm_document.main.name
+  rds_modify_ssm_docs_arn = aws_ssm_document.main.arn
+}
+
+resource "aws_iam_policy" "eventbridge" {
+  name        = "modify-rds-ssm-automation-eventbridge-policy"
+  description = "Allows to run SSM Automation EventBridge"
+
+  policy = jsonencode({
+    Version : "2012-10-17"
+    Statement : [
+      {
+        Action : "ssm:StartAutomationExecution",
+        Effect : "Allow",
+        Resource : "${local.rds_modify_ssm_docs_arn}:$DEFAULT"
+      },
+      {
+        Effect : "Allow",
+        Action : "iam:PassRole",
+        Resource : aws_iam_role.ssm.arn,
+        Condition : {
+          "StringLikeIfExists" : {
+            "iam:PassedToService" : "ssm.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name = "modify-rds-ssm-automation-eventbridge-policy"
   }
 }

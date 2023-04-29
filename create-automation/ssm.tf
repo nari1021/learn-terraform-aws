@@ -1,7 +1,7 @@
 data "template_file" "ssm" {
   template = file("${path.module}/ModifyRDSInstanceClass.yaml")
   vars = {
-    "iam_role" = aws_iam_role.main.arn
+    "iam_role" = aws_iam_role.ssm.arn
   }
 }
 
