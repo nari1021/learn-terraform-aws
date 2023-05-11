@@ -1,14 +1,15 @@
 resource "aws_vpc" "main" {
-  cidr_block = "100.0.0.0/16"
+  cidr_block = var.vpc_cidr
 
   tags = {
     Name = "aws-vpc-temp-an2"
   }
 }
 
-resource "aws_subnet" "first_subnet" {
+resource "aws_subnet" "public" {
+  count      = length(var.public_subnet_cidr_list)
   vpc_id     = aws_vpc.main.id
-  cidr_block = "100.10.0.0/24"
+  cidr_block = var.public_subnet_cidr_list[count.index]
 
   availability_zone = "ap-northeast-2a"
   tags = {
@@ -16,37 +17,16 @@ resource "aws_subnet" "first_subnet" {
   }
 }
 
-resource "aws_subnet" "second_subnet" {
+resource "aws_subnet" "private" {
+  count      = length(var.private_subnet_cidr_list)
   vpc_id     = aws_vpc.main.id
-  cidr_block = "100.11.0.0/24"
-
-  availability_zone = "ap-northeast-2c"
-
-  tags = {
-    Name = "subnet2-terraform-pub-an2"
-  }
-}
-
-resource "aws_subnet" "first_pri_subnet" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = "100.20.0.0/24"
+  cidr_block = var.private_subnet_cidr_list[count.index]
 
   availability_zone = "ap-northeast-2a"
   tags = {
     Name = "subnet1-terraform-pri-an2"
   }
 }
-
-resource "aws_subnet" "second_pri_subnet" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = "100.21.0.0/24"
-
-  availability_zone = "ap-northeast-2c"
-  tags = {
-    Name = "subnet2-terraform-pub-an2"
-  }
-}
-
 
 // Internet Gateway 생성
 resource "aws_internet_gateway" "igw" {
@@ -75,12 +55,12 @@ resource "aws_route_table" "route_table_pri" {
 }
 
 resource "aws_route_table_association" "route_table_association_1" {
-  subnet_id      = aws_subnet.first_subnet.id
+  subnet_id      = aws_subnet.public[0].id
   route_table_id = aws_route_table.route_table_pub.id
 }
 
 resource "aws_route_table_association" "route_table_assciation_2" {
-  subnet_id      = aws_subnet.second_subnet.id
+  subnet_id      = aws_subnet.public[1].id
   route_table_id = aws_route_table.route_table_pub.id
 }
 
@@ -95,7 +75,7 @@ resource "aws_eip" "eip_nat" {
 
 resource "aws_nat_gateway" "nat_gateway" {
   allocation_id = aws_eip.eip_nat.id
-  subnet_id     = aws_subnet.first_subnet.id
+  subnet_id     = aws_subnet.public[0].id
 
   tags = {
     Name = "nat-terraform-an2"
@@ -103,7 +83,7 @@ resource "aws_nat_gateway" "nat_gateway" {
 }
 
 resource "aws_route_table_association" "route_table_association_pri_1" {
-  subnet_id      = aws_subnet.first_pri_subnet.id
+  subnet_id      = aws_subnet.private[0].id
   route_table_id = aws_route_table.route_table_pri.id
 }
 
